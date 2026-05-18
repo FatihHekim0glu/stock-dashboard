@@ -1,0 +1,8 @@
+streamlit>=1.30
+yfinance>=1.2
+curl_cffi
+diskcache
+plotly>=5.20
+pandas>=2.0
+numpy>=1.26
+pandas-market-calendars>=4.4

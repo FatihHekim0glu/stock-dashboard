@@ -1,0 +1,47 @@
+[project]
+name = "stock-dashboard"
+version = "0.1.0"
+description = "Interactive single-ticker stock dashboard with hand-rolled technical indicators."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.30",
+    "yfinance>=1.2",
+    "curl_cffi",
+    "diskcache",
+    "plotly>=5.20",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "pandas-market-calendars>=4.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: tests that hit the network or take long (deselect with '-m \"not slow\"')",
+    "oracle: tests that require ta-lib installed (auto-skipped via pytest.importorskip)",
+]
+addopts = ["-ra", "--strict-markers"]
+
+[dependency-groups]
+dev = [
+    "numpy>=2.4.5",
+    "pandas>=3.0.3",
+    "pytest>=9.0.3",
+    "pytest-cov",
+    "ta-lib>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Real-bug-detector rule selection; skips D (docstrings) and ANN (annotations)
+# noise that's not worth chasing on a portfolio dashboard.
+select = ["E", "F", "W", "B", "C4", "C90", "I", "UP", "SIM", "RET", "DTZ", "PT", "RUF"]
+ignore = ["E501"]  # line length handled by the formatter
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "ANN", "D", "PT011"]
+"scripts/*" = ["T201", "INP001"]

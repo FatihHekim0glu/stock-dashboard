@@ -1,0 +1,16 @@
+# Streamlit configuration for deployed builds.
+#
+# - showErrorDetails=false hides Python tracebacks from end users, which would
+#   otherwise leak internal paths, env vars, and dependency versions on a
+#   public Space. Errors still appear in the server logs.
+# - gatherUsageStats=false opts out of Streamlit's anonymous telemetry.
+# - headless=true skips the "open browser" prompt on first launch.
+
+[client]
+showErrorDetails = false
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
