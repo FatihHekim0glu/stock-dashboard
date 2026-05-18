@@ -1,6 +1,6 @@
 # Stock Dashboard — interactive technical analysis for any ticker
 
-![Python](https://img.shields.io/badge/python-3.11%2B-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Built with Streamlit](https://img.shields.io/badge/built%20with-streamlit-FF4B4B) ![CI](https://img.shields.io/badge/CI-pytest-green)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Built with Streamlit](https://img.shields.io/badge/built%20with-streamlit-FF4B4B) [![CI](https://github.com/FatihHekim0glu/stock-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/FatihHekim0glu/stock-dashboard/actions/workflows/ci.yml)
 
 > Hand-rolled technical indicators in pandas/numpy, verified against TA-Lib in CI. Plotly subplots, Streamlit UI, pytest with golden tests, GitHub Actions.
 
@@ -25,7 +25,7 @@ Single-ticker stock dashboard with five hand-rolled technical indicators — SMA
 ## Quickstart
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/stock-dashboard.git
+git clone https://github.com/FatihHekim0glu/stock-dashboard.git
 cd stock-dashboard
 pip install -r requirements.txt
 streamlit run app.py
@@ -34,7 +34,7 @@ streamlit run app.py
 Or, with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/stock-dashboard.git
+git clone https://github.com/FatihHekim0glu/stock-dashboard.git
 cd stock-dashboard
 uv sync
 uv run streamlit run app.py
