@@ -43,3 +43,8 @@ Thumbs.db
 
 # Env
 .env
+
+# Session artifacts
+CLAUDE.md
+.claude/
+MIGRATION_NOTES.md

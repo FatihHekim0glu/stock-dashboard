@@ -1,5 +1,7 @@
 # Stock Dashboard — interactive technical analysis for any ticker
 
+> **Now live as an interactive web tool at https://fatihhekimoglu-platform.vercel.app/tools/stock-dashboard** — part of the fatihhekimoglu.com quantitative-tools platform. The Streamlit app here remains usable for local development; the hosted version uses the same compute library wrapped in a FastAPI backend.
+
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Built with Streamlit](https://img.shields.io/badge/built%20with-streamlit-FF4B4B) [![CI](https://github.com/FatihHekim0glu/stock-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/FatihHekim0glu/stock-dashboard/actions/workflows/ci.yml)
 
 > Hand-rolled technical indicators in pandas/numpy, verified against TA-Lib in CI. Plotly subplots, Streamlit UI, pytest with golden tests, GitHub Actions.
