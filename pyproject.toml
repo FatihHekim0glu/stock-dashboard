@@ -30,6 +30,9 @@ dev = [
     "pytest>=9.0.3",
     "pytest-cov",
     "ta-lib>=0.6",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pandas-stubs",
 ]
 
 [tool.ruff]
@@ -43,5 +46,46 @@ select = ["E", "F", "W", "B", "C4", "C90", "I", "UP", "SIM", "RET", "DTZ", "PT",
 ignore = ["E501"]  # line length handled by the formatter
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "PLR2004", "ANN", "D", "PT011"]
+# DTZ: tests build throwaway date.today() windows for cache keys; tz-awareness
+# is irrelevant there and would only add noise.
+"tests/*" = ["S101", "PLR2004", "ANN", "D", "PT011", "DTZ"]
 "scripts/*" = ["T201", "INP001"]
+
+[tool.mypy]
+strict = false
+warn_return_any = true
+files = ["src"]
+
+# Third-party libraries without published type stubs. Ignoring missing imports
+# keeps the type check focused on our own code rather than failing on upstream
+# packages we do not control.
+[[tool.mypy.overrides]]
+module = [
+    "yfinance.*",
+    "curl_cffi.*",
+    "diskcache.*",
+    "pandas_market_calendars.*",
+    "plotly.*",
+    "streamlit.*",
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src"]
+# Exclude the UI and helper entry points from coverage: app.py is the Streamlit
+# front end (driven by st.* side effects, not unit-tested) and scripts/ is a
+# one-off fixture downloader. Coverage tracks the importable compute library.
+omit = [
+    "app.py",
+    "scripts/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
