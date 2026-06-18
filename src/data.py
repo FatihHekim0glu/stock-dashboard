@@ -32,7 +32,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
-from typing import Final
+from typing import Final, cast
 from zoneinfo import ZoneInfo
 
 import diskcache
@@ -77,7 +77,7 @@ class DataFetchError(Exception):
     """Raised when both yfinance and Stooq fail to return usable OHLCV data."""
 
 
-def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
+def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:  # noqa: C901 - retry/fallback flow reads best as one sequence
     """Fetch daily OHLCV for `ticker` between `start` and `end` (both inclusive).
 
     Returns a DataFrame indexed by date with columns Open, High, Low, Close,
@@ -102,7 +102,9 @@ def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
     if not intraday_bypass:
         cached = cache.get(cache_key)
         if cached is not None:
-            return cached
+            # diskcache is untyped, but this key only ever stores a normalised
+            # OHLCV frame (see the cache.set calls below).
+            return cast("pd.DataFrame", cached)
 
     # Primary: yfinance with chrome-impersonating session, up to 4 attempts.
     last_error: Exception | None = None
@@ -199,7 +201,8 @@ def _market_close_et(day_iso: str) -> datetime | None:
         return None
     if sched.empty:
         return None
-    return sched.iloc[0]["market_close"].tz_convert(_NYSE).to_pydatetime()
+    close_ts: pd.Timestamp = sched.iloc[0]["market_close"]
+    return cast("datetime", close_ts.tz_convert(_NYSE).to_pydatetime())
 
 
 def trading_day_stamp() -> str:
@@ -299,8 +302,7 @@ def _fetch_stooq_csv(ticker: str, start: date, end: date) -> pd.DataFrame:
             f"check the ticker symbol and date range."
         )
 
-    df = df.set_index("Date").sort_index(ascending=True)
-    return df
+    return df.set_index("Date").sort_index(ascending=True)
 
 
 def _normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:

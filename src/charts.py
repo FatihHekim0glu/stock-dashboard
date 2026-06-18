@@ -98,9 +98,9 @@ def _apply_layout(
     holidays: list[pd.Timestamp] | None = None,
 ) -> None:
     """Apply axis and layout styling to the assembled figure."""
-    rangebreaks: list[dict] = [dict(bounds=["sat", "mon"])]
+    rangebreaks: list[dict] = [{"bounds": ["sat", "mon"]}]
     if holidays:
-        rangebreaks.append(dict(values=holidays))
+        rangebreaks.append({"values": holidays})
     fig.update_xaxes(
         showspikes=True,
         spikemode="across",
@@ -116,29 +116,29 @@ def _apply_layout(
     bottom_xaxis = f"xaxis{n_rows}"
     fig.update_layout(
         **{
-            bottom_xaxis: dict(
-                rangeselector=dict(
-                    buttons=[
-                        dict(count=1, label="1M", step="month", stepmode="backward"),
-                        dict(count=6, label="6M", step="month", stepmode="backward"),
-                        dict(count=1, label="YTD", step="year", stepmode="todate"),
-                        dict(count=1, label="1Y", step="year", stepmode="backward"),
-                        dict(count=5, label="5Y", step="year", stepmode="backward"),
-                        dict(label="MAX", step="all"),
+            bottom_xaxis: {
+                "rangeselector": {
+                    "buttons": [
+                        {"count": 1, "label": "1M", "step": "month", "stepmode": "backward"},
+                        {"count": 6, "label": "6M", "step": "month", "stepmode": "backward"},
+                        {"count": 1, "label": "YTD", "step": "year", "stepmode": "todate"},
+                        {"count": 1, "label": "1Y", "step": "year", "stepmode": "backward"},
+                        {"count": 5, "label": "5Y", "step": "year", "stepmode": "backward"},
+                        {"label": "MAX", "step": "all"},
                     ]
-                ),
-            ),
+                },
+            },
             "xaxis_rangeslider_visible": False,
             "hovermode": "x unified",
             "height": height,
             "template": "plotly_white",
             "showlegend": True,
-            "legend": dict(orientation="h", y=1.02, x=0),
+            "legend": {"orientation": "h", "y": 1.02, "x": 0},
         }
     )
 
 
-def build_figure(
+def build_figure(  # noqa: C901 - linear trace-assembly; splitting would only scatter the figure setup
     df: pd.DataFrame,
     indicators: tuple[str, ...] = (),
     candlestick: bool = True,
@@ -200,7 +200,7 @@ def build_figure(
                 y=df["Close"],
                 mode="lines",
                 name="Close",
-                line=dict(color=_UP),
+                line={"color": _UP},
                 connectgaps=False,
             ),
             row=1,
@@ -245,7 +245,7 @@ def build_figure(
                 y=df["bb_upper"],
                 mode="lines",
                 name="BB Upper",
-                line=dict(width=0),
+                line={"width": 0},
                 connectgaps=False,
             ),
             row=1,
@@ -259,7 +259,7 @@ def build_figure(
                 name="BB Lower",
                 fill="tonexty",
                 fillcolor=_BB_FILL,
-                line=dict(width=0),
+                line={"width": 0},
                 connectgaps=False,
             ),
             row=1,
@@ -271,7 +271,7 @@ def build_figure(
                 y=df["bb_middle"],
                 mode="lines",
                 name="BB Middle",
-                line=dict(width=1, dash="dash"),
+                line={"width": 1, "dash": "dash"},
                 connectgaps=False,
             ),
             row=1,
