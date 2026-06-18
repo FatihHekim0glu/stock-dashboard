@@ -9,13 +9,13 @@ Key gotchas baked in here:
   - Use curl_cffi.requests.Session(impersonate="chrome124"), NOT requests.Session
     (vanilla requests broke in yfinance 0.2.59).
   - Pin auto_adjust=True explicitly; yfinance changed the default in 0.2.51.
-  - Detect failure on empty DataFrame OR all-NaN Close, not just exceptions —
+  - Detect failure on empty DataFrame OR all-NaN Close, not just exceptions -
     yfinance often silently returns empty.
   - Cache on disk via diskcache, key = (cache_version, ticker, start, end,
     day_stamp); the day_stamp flips after each day's actual NYSE close (read
     from the XNYS schedule, which handles DST + half-day closes). When the
     requested range includes today AND market is still open, cache is
-    bypassed entirely so the user sees fresh intraday data — only finalised
+    bypassed entirely so the user sees fresh intraday data - only finalised
     historical bars get persisted.
   - Stooq fallback uses a direct CSV download via urllib so we don't need
     pandas-datareader (that package imports the removed `distutils` module on
@@ -32,7 +32,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
-from typing import Final
+from typing import Final, cast
 from zoneinfo import ZoneInfo
 
 import diskcache
@@ -60,7 +60,7 @@ _CACHE_VERSION: Final[str] = "v3"
 # concurrently. diskcache.Cache is SQLite-backed and thread-safe internally,
 # so wrapping it here only guarantees a single instance per process.
 # curl_cffi.requests.Session is NOT documented as thread-safe; lru_cache keeps
-# us to one shared instance (acceptable for v1 — worst case is two reruns
+# us to one shared instance (acceptable for v1 - worst case is two reruns
 # racing on the same TLS context, both succeed but slightly slower). A full
 # fix would use a threading.local pool; revisit if we see concurrency errors.
 @functools.lru_cache(maxsize=1)
@@ -77,11 +77,11 @@ class DataFetchError(Exception):
     """Raised when both yfinance and Stooq fail to return usable OHLCV data."""
 
 
-def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
+def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:  # noqa: C901 - retry/fallback flow reads best as one sequence
     """Fetch daily OHLCV for `ticker` between `start` and `end` (both inclusive).
 
     Returns a DataFrame indexed by date with columns Open, High, Low, Close,
-    Volume — Close is split- and dividend-adjusted.
+    Volume - Close is split- and dividend-adjusted.
 
     Raises `DataFetchError` when the ticker is invalid or no data is available
     from either yfinance or Stooq.
@@ -102,7 +102,9 @@ def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
     if not intraday_bypass:
         cached = cache.get(cache_key)
         if cached is not None:
-            return cached
+            # diskcache is untyped, but this key only ever stores a normalised
+            # OHLCV frame (see the cache.set calls below).
+            return cast("pd.DataFrame", cached)
 
     # Primary: yfinance with chrome-impersonating session, up to 4 attempts.
     last_error: Exception | None = None
@@ -110,7 +112,7 @@ def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
         try:
             # yfinance's `end` is EXCLUSIVE; Stooq's `d2` is inclusive. Add a
             # day so both sources return the same row count for identical
-            # (start, end) UI inputs — otherwise cache hit vs source switch
+            # (start, end) UI inputs - otherwise cache hit vs source switch
             # would silently change the row count under the user.
             df = yf.Ticker(ticker, session=_get_session()).history(
                 start=start,
@@ -125,7 +127,7 @@ def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
                 )
             else:
                 normalized = _normalize_ohlcv(df)
-                # Drop trailing rows with NaN Close — during pre-market hours
+                # Drop trailing rows with NaN Close - during pre-market hours
                 # yfinance returns a today-dated stub row with NaN prices for
                 # the bar that has not yet opened. Caching the stub would
                 # freeze the chart's tail at NaN until the day_stamp flips at
@@ -144,7 +146,7 @@ def fetch_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
         except Exception as exc:  # YFRateLimitError, YFDataException, network, etc.
             last_error = exc
 
-        # Sleep on every failed attempt EXCEPT the last — no point sleeping
+        # Sleep on every failed attempt EXCEPT the last - no point sleeping
         # right before giving up and switching to Stooq.
         if attempt < _MAX_RETRIES - 1:
             time.sleep((2**attempt) + random.random() * 2)
@@ -199,13 +201,14 @@ def _market_close_et(day_iso: str) -> datetime | None:
         return None
     if sched.empty:
         return None
-    return sched.iloc[0]["market_close"].tz_convert(_NYSE).to_pydatetime()
+    close_ts: pd.Timestamp = sched.iloc[0]["market_close"]
+    return cast("datetime", close_ts.tz_convert(_NYSE).to_pydatetime())
 
 
 def trading_day_stamp() -> str:
     """Return a stamp that bumps once per NY day after that day's NYSE close.
 
-    Uses pandas_market_calendars to read the actual close time — handles DST
+    Uses pandas_market_calendars to read the actual close time - handles DST
     (EDT close 20:00 UTC, EST close 21:00 UTC) and half-day closes (13:00 ET
     on day-after-Thanksgiving, Christmas Eve, July 3) without hardcoding any
     hour. On weekends and full-day holidays there is no bar to wait for, so
@@ -218,7 +221,7 @@ def trading_day_stamp() -> str:
     today = now_et.date()
     close_et = _market_close_et(today.isoformat())
     if close_et is None:
-        # Non-trading day (weekend / full holiday) — nothing in-progress.
+        # Non-trading day (weekend / full holiday) - nothing in-progress.
         return today.isoformat()
     if now_et >= close_et:
         return today.isoformat()
@@ -228,7 +231,7 @@ def trading_day_stamp() -> str:
 def _market_is_open_now() -> bool:
     """True if right now is between today's market open and close (or pre-open early).
 
-    Conservatively returns True from 00:00 ET up until today's close — this is
+    Conservatively returns True from 00:00 ET up until today's close - this is
     enough for the intraday cache-bypass decision: if the requested range
     includes today AND we're not yet past close, the data is still changing.
     """
@@ -276,7 +279,7 @@ def _fetch_stooq_csv(ticker: str, start: date, end: date) -> pd.DataFrame:
         raise DataFetchError(f"Stooq response for {ticker} exceeded {_STOOQ_MAX_BYTES} bytes")
 
     # Stooq returns HTTP 200 with an HTML error page when rate-limited or when
-    # the symbol is unknown — pd.read_csv would either fail cryptically or
+    # the symbol is unknown - pd.read_csv would either fail cryptically or
     # parse a single garbage row. Sniff the first bytes to fail loudly instead.
     preview = body[:200].lstrip().lower()
     if preview.startswith(b"<") or b"<html" in preview:
@@ -299,8 +302,7 @@ def _fetch_stooq_csv(ticker: str, start: date, end: date) -> pd.DataFrame:
             f"check the ticker symbol and date range."
         )
 
-    df = df.set_index("Date").sort_index(ascending=True)
-    return df
+    return df.set_index("Date").sort_index(ascending=True)
 
 
 def _normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:

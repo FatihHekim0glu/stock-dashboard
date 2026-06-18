@@ -22,7 +22,7 @@ def ohlcv_with_indicators() -> pd.DataFrame:
     n = 60
     idx = pd.bdate_range(start="2024-01-02", periods=n)
     close = pd.Series(100 + np.cumsum(rng.standard_normal(n)), index=idx)
-    df = pd.DataFrame(
+    return pd.DataFrame(
         {
             "Open": close,
             "High": close + rng.uniform(0.1, 1.0, n),
@@ -43,11 +43,10 @@ def ohlcv_with_indicators() -> pd.DataFrame:
         },
         index=idx,
     )
-    return df
 
 
 class TestSubplotRowCount:
-    """Conditional row layout — 2 to 4 rows depending on requested indicators."""
+    """Conditional row layout - 2 to 4 rows depending on requested indicators."""
 
     def test_no_indicators_yields_two_rows(self, ohlcv_with_indicators):
         fig = charts.build_figure(ohlcv_with_indicators, indicators=())
@@ -79,12 +78,13 @@ class TestTraces:
     def test_line_view_renders_scatter_close(self, ohlcv_with_indicators):
         fig = charts.build_figure(ohlcv_with_indicators, indicators=(), candlestick=False)
         types = [type(t).__name__ for t in fig.data]
-        assert "Scatter" in types and "Candlestick" not in types
+        assert "Scatter" in types
+        assert "Candlestick" not in types
 
     def test_macd_renders_all_three_traces(self, ohlcv_with_indicators):
         fig = charts.build_figure(ohlcv_with_indicators, indicators=("macd",))
         names = {t.name for t in fig.data}
-        # macd line, signal line, histogram — three named MACD-related traces.
+        # macd line, signal line, histogram - three named MACD-related traces.
         assert {"MACD", "Signal", "Histogram"}.issubset(names)
 
     def test_bollinger_renders_three_band_traces(self, ohlcv_with_indicators):
@@ -95,7 +95,7 @@ class TestTraces:
 
 class TestGracefulDegradation:
     def test_missing_indicator_columns_are_skipped(self, ohlcv_with_indicators):
-        # Drop the bb_* columns; request "bb" anyway — should NOT raise and
+        # Drop the bb_* columns; request "bb" anyway - should NOT raise and
         # should NOT add band traces.
         df = ohlcv_with_indicators.drop(columns=["bb_upper", "bb_middle", "bb_lower"])
         fig = charts.build_figure(df, indicators=("bb",))

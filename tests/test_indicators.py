@@ -4,7 +4,7 @@ Two layers:
   1. Closed-form (always runs): degenerate inputs with hand-computable answers
      plus edge-case parametrizations covering all-NaN, short input, and NaN gaps.
   2. Oracle (talib required): assert_allclose vs TA-Lib on the tail of a
-     synthetic OHLCV fixture. Gated via pytest.importorskip — auto-skipped
+     synthetic OHLCV fixture. Gated via pytest.importorskip - auto-skipped
      when TA-Lib is not installed on the host.
 """
 
@@ -17,7 +17,7 @@ import pytest
 from src import indicators
 
 # ---------------------------------------------------------------------------
-# Closed-form correctness — SMA
+# Closed-form correctness - SMA
 # ---------------------------------------------------------------------------
 
 
@@ -35,7 +35,7 @@ class TestSMA:
 
 
 # ---------------------------------------------------------------------------
-# Closed-form correctness — EMA
+# Closed-form correctness - EMA
 # ---------------------------------------------------------------------------
 
 
@@ -48,7 +48,7 @@ class TestEMA:
 
 
 # ---------------------------------------------------------------------------
-# Closed-form correctness — Bollinger Bands
+# Closed-form correctness - Bollinger Bands
 # ---------------------------------------------------------------------------
 
 
@@ -81,7 +81,7 @@ class TestBollinger:
 
 
 # ---------------------------------------------------------------------------
-# Closed-form correctness — RSI
+# Closed-form correctness - RSI
 # ---------------------------------------------------------------------------
 
 
@@ -102,7 +102,7 @@ class TestRSI:
     def test_wilder_textbook_golden_value(self):
         # 16 closes taken from Wilder's "New Concepts in Technical Trading
         # Systems" (1978). The textbook prints the first RSI value at the end
-        # of the 14-bar warmup — that lands at iloc[14] in 0-indexed terms
+        # of the 14-bar warmup - that lands at iloc[14] in 0-indexed terms
         # (the seed position with SMA seeding, matching TA-Lib). The point of
         # this assertion is to catch the most common silent bug in RSI: using
         # ewm(span=14) (alpha = 2/15) instead of Wilder's RMA (alpha = 1/14).
@@ -133,7 +133,7 @@ class TestRSI:
 
 
 # ---------------------------------------------------------------------------
-# Closed-form correctness — MACD
+# Closed-form correctness - MACD
 # ---------------------------------------------------------------------------
 
 
@@ -156,7 +156,7 @@ class TestMACD:
 
 
 # ---------------------------------------------------------------------------
-# Edge cases — parametrized across every indicator
+# Edge cases - parametrized across every indicator
 # ---------------------------------------------------------------------------
 
 
@@ -180,7 +180,7 @@ def _series_with_nan_gap(n: int = 80, gap_start: int = 30, gap_len: int = 5) -> 
 # Bollinger/MACD (DataFrame).
 def _to_series(result) -> pd.Series:
     if isinstance(result, pd.DataFrame):
-        # Pick the first column as a witness — for Bollinger that is 'upper',
+        # Pick the first column as a witness - for Bollinger that is 'upper',
         # for MACD that is 'macd'. Both behave like the rest under NaN inputs.
         return result.iloc[:, 0]
     return result
@@ -195,7 +195,7 @@ INDICATOR_CASES = [
 ]
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_all_nan_input_returns_all_nan(name, fn, length):
     series = _series_all_nan(n=max(60, length * 3))
     result = _to_series(fn(series))
@@ -203,9 +203,9 @@ def test_all_nan_input_returns_all_nan(name, fn, length):
     assert result.isna().all()
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_input_shorter_than_period_is_all_nan(name, fn, length):
-    # Length strictly less than the longest internal window — for MACD the
+    # Length strictly less than the longest internal window - for MACD the
     # binding constraint is `slow` (26), not `fast`.
     series = _series_short(n=max(3, length - 1))
     result = _to_series(fn(series))
@@ -213,7 +213,7 @@ def test_input_shorter_than_period_is_all_nan(name, fn, length):
     assert result.isna().all()
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_nan_gap_does_not_permanently_corrupt_tail(name, fn, length):
     n = max(120, length * 5)
     gap_start = length * 2
@@ -229,7 +229,7 @@ def test_nan_gap_does_not_permanently_corrupt_tail(name, fn, length):
 
 
 # ---------------------------------------------------------------------------
-# Oracle layer — compare against TA-Lib on the synthetic fixture
+# Oracle layer - compare against TA-Lib on the synthetic fixture
 # ---------------------------------------------------------------------------
 
 try:

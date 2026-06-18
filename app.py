@@ -1,12 +1,12 @@
-"""Streamlit entry point — single-ticker stock dashboard.
+"""Streamlit entry point - single-ticker stock dashboard.
 
 Run locally with: streamlit run app.py
 
 Cache topology (three layers, see cached_* helpers below):
 
-  1. cached_fetch              — 6h  TTL, just the network call
-  2. cached_indicators_only    — 24h TTL, derives indicator columns
-  3. cached_stats              — 24h TTL, derives Summary (rf_annual only here)
+  1. cached_fetch              - 6h  TTL, just the network call
+  2. cached_indicators_only    - 24h TTL, derives indicator columns
+  3. cached_stats              - 24h TTL, derives Summary (rf_annual only here)
 
 Critically, the indicator/stats layers do NOT receive the DataFrame as an
 argument. Hashing a 2500-row frame on every Streamlit rerun would dominate
@@ -55,8 +55,8 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 
 
-_FETCH_TTL_SECONDS = 21_600  # 6h — daily bars only refresh after market close
-_DERIVED_TTL_SECONDS = 86_400  # 24h — indicators + stats only need same-day freshness
+_FETCH_TTL_SECONDS = 21_600  # 6h - daily bars only refresh after market close
+_DERIVED_TTL_SECONDS = 86_400  # 24h - indicators + stats only need same-day freshness
 
 
 @st.cache_data(ttl=_FETCH_TTL_SECONDS, max_entries=128, show_spinner="Fetching OHLCV...")
@@ -187,13 +187,13 @@ def _is_finite(x) -> bool:
 
 def _fmt_pct(value, decimals: int = 2) -> str:
     if value is None or not _is_finite(value):
-        return "—"
+        return "-"
     return f"{value * 100:.{decimals}f}%"
 
 
 def _fmt_num(value, decimals: int = 2) -> str:
     if value is None or not _is_finite(value):
-        return "—"
+        return "-"
     return f"{value:.{decimals}f}"
 
 
@@ -238,14 +238,14 @@ except DataFetchError as e:
 
 if summary.trading_days < 5:
     st.warning(
-        f"Only {summary.trading_days} trading day(s) in range — volatility and Sharpe will be unreliable."
+        f"Only {summary.trading_days} trading day(s) in range - volatility and Sharpe will be unreliable."
     )
 
 fig = build_figure_for_render(df, indicators_tuple, candlestick)
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Metric cards — first row.
+# Metric cards - first row.
 # Explicit ratios + small gap let Streamlit auto-stack on narrow viewports
 # while preserving the 5-across desktop layout.
 row1 = st.columns([1, 1, 1, 1, 1], gap="small")
@@ -258,7 +258,7 @@ row1[3].metric(
 )
 row1[4].metric("Max DD", _fmt_pct(summary.max_drawdown))
 
-# Metric cards — second row.
+# Metric cards - second row.
 row2 = st.columns([1, 1, 1, 1, 1], gap="small")
 row2[0].metric("Best Day", _fmt_pct(summary.best_day))
 row2[1].metric("Worst Day", _fmt_pct(summary.worst_day))
