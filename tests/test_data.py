@@ -43,7 +43,7 @@ def _make_fake_datetime(fixed_now: datetime):
 
 
 @pytest.mark.parametrize(
-    "fixed_now, expected_offset_days",
+    ("fixed_now", "expected_offset_days"),
     [
         # June 10 2025 is EDT (UTC-4). NYSE closes 16:00 ET = 20:00 UTC.
         # 19:59 UTC → ET 15:59, BEFORE close → yesterday's stamp.

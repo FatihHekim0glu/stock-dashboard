@@ -195,7 +195,7 @@ INDICATOR_CASES = [
 ]
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_all_nan_input_returns_all_nan(name, fn, length):
     series = _series_all_nan(n=max(60, length * 3))
     result = _to_series(fn(series))
@@ -203,7 +203,7 @@ def test_all_nan_input_returns_all_nan(name, fn, length):
     assert result.isna().all()
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_input_shorter_than_period_is_all_nan(name, fn, length):
     # Length strictly less than the longest internal window — for MACD the
     # binding constraint is `slow` (26), not `fast`.
@@ -213,7 +213,7 @@ def test_input_shorter_than_period_is_all_nan(name, fn, length):
     assert result.isna().all()
 
 
-@pytest.mark.parametrize("name,fn,length", INDICATOR_CASES)
+@pytest.mark.parametrize(("name", "fn", "length"), INDICATOR_CASES)
 def test_nan_gap_does_not_permanently_corrupt_tail(name, fn, length):
     n = max(120, length * 5)
     gap_start = length * 2
